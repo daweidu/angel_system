@@ -26,10 +26,11 @@ namespace RosMessageTypes.Angel
         public TaskItemMsg[] task_items;
         //  List of steps for this task
         public string[] steps;
-        //  Current step index
-        public byte current_step_id;
-        //  Current/previous steps
+        //  Current step index (-1 indicates no step has been finished yet)
+        public sbyte current_step_id;
+        //  Current step is the task step most recently completed
         public string current_step;
+        //  Previous step is the step before the most recently completed
         public string previous_step;
         //  Current activity
         public string current_activity;
@@ -37,6 +38,9 @@ namespace RosMessageTypes.Angel
         //  Time remaining to move to next task (e.g. waiting for tea to steep)
         //  -1 means that this is not a time based task
         public int time_remaining_until_next_task;
+        //  Current confidence from the HMM that a recipe is complete.
+        //  Only task_monitor_v2 will fill this in.
+        public float task_complete_confidence;
 
         public TaskUpdateMsg()
         {
@@ -51,9 +55,10 @@ namespace RosMessageTypes.Angel
             this.current_activity = "";
             this.next_activity = "";
             this.time_remaining_until_next_task = 0;
+            this.task_complete_confidence = 0.0f;
         }
 
-        public TaskUpdateMsg(Std.HeaderMsg header, string task_name, string task_description, TaskItemMsg[] task_items, string[] steps, byte current_step_id, string current_step, string previous_step, string current_activity, string next_activity, int time_remaining_until_next_task)
+        public TaskUpdateMsg(Std.HeaderMsg header, string task_name, string task_description, TaskItemMsg[] task_items, string[] steps, sbyte current_step_id, string current_step, string previous_step, string current_activity, string next_activity, int time_remaining_until_next_task, float task_complete_confidence)
         {
             this.header = header;
             this.task_name = task_name;
@@ -66,6 +71,7 @@ namespace RosMessageTypes.Angel
             this.current_activity = current_activity;
             this.next_activity = next_activity;
             this.time_remaining_until_next_task = time_remaining_until_next_task;
+            this.task_complete_confidence = task_complete_confidence;
         }
 
         public static TaskUpdateMsg Deserialize(MessageDeserializer deserializer) => new TaskUpdateMsg(deserializer);
@@ -83,6 +89,7 @@ namespace RosMessageTypes.Angel
             deserializer.Read(out this.current_activity);
             deserializer.Read(out this.next_activity);
             deserializer.Read(out this.time_remaining_until_next_task);
+            deserializer.Read(out this.task_complete_confidence);
         }
 
         public override void SerializeTo(MessageSerializer serializer)
@@ -100,6 +107,7 @@ namespace RosMessageTypes.Angel
             serializer.Write(this.current_activity);
             serializer.Write(this.next_activity);
             serializer.Write(this.time_remaining_until_next_task);
+            serializer.Write(this.task_complete_confidence);
         }
 
         public override string ToString()
@@ -115,7 +123,8 @@ namespace RosMessageTypes.Angel
             "\nprevious_step: " + previous_step.ToString() +
             "\ncurrent_activity: " + current_activity.ToString() +
             "\nnext_activity: " + next_activity.ToString() +
-            "\ntime_remaining_until_next_task: " + time_remaining_until_next_task.ToString();
+            "\ntime_remaining_until_next_task: " + time_remaining_until_next_task.ToString() +
+            "\ntask_complete_confidence: " + task_complete_confidence.ToString();
         }
 
 #if UNITY_EDITOR

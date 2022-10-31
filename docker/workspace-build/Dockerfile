@@ -25,6 +25,8 @@ RUN apt-get -y update \
         ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
         ros-${ROS_DISTRO}-test-msgs \
         ros-${ROS_DISTRO}-pybind11-vendor \
+        # for demo-ui
+        ros-${ROS_DISTRO}-rosbridge-server \
         tmuxinator \
         # for python simpleaudio
         libasound2-dev \
@@ -37,6 +39,10 @@ RUN apt-get -y update \
         libx11-6 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# For the demo-ui
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - 
+RUN apt-get install -y nodejs && node -v && npm -v
 
 # Env vars for the nvidia-container-runtime.
 ENV NVIDIA_VISIBLE_DEVICES all
@@ -99,6 +105,9 @@ RUN cd "${ANGEL_WORKSPACE_DIR}" \
 COPY ./ros "${ANGEL_WORKSPACE_DIR}/src"
 COPY docker/workspace_build.sh "${ANGEL_WORKSPACE_DIR}"/
 RUN "${ANGEL_WORKSPACE_DIR}/workspace_build.sh"
+
+RUN cd "${ANGEL_WORKSPACE_DIR}"/src/angel_utils/demo_ui/ \
+    && npm install
 
 # Bring in tmux run configurations
 # - add symlink to tmuxinator's expected "config home"
